@@ -18,5 +18,10 @@ final GoRouter appRouter = GoRouter(
       path: '/registermedico',
       builder: (context, state) => const RegisterDoctorPage(), // Usa RegisterDoctorPage
     ),
+    GoRoute(
+      path: '/Administrador',
+      name: 'Administrador',
+      builder: (context, state) => const AdminPage(), // Usa AdminPage
+    ),
   ]
 );
