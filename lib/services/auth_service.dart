@@ -75,7 +75,7 @@ class AuthService {
           final data = jsonDecode(response.body);
           return {
             'success': false,
-            'message': data['message'] ?? 'Usuario o contraseña incorrectos',
+            'message': data['message'] ?? 'Usuario incorrecto',
           };
         } catch (e) {
           return {
@@ -85,7 +85,7 @@ class AuthService {
         }
       } else {
         // Si el cuerpo de la respuesta está vacío
-        return {'success': false, 'message': 'Usuario incorrecto'};
+        return {'success': false, 'message': 'Error con servidor'};
       }
     }
   } //! register se encarga de registrar al usuario
@@ -102,8 +102,21 @@ class AuthService {
     String contrasena,
     String tipoUsuario,
   ) async {
+    print('Datos enviados al servidor:');
+    print({
+      'nombre': nombre,
+      'telefono': telefono,
+      'email': email,
+      'identificacion': identificacion,
+      'genero': genero,
+      'estado': estado,
+      'tipoIdentificacion': tipoIdentificacion,
+      'contrasena': contrasena,
+      'tipoUsuario': tipoUsuario,
+    });
+
     final response = await http.post(
-      Uri.parse('${baseUrl}usario'),
+      Uri.parse('${baseUrl}register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'nombre': nombre,
@@ -117,6 +130,8 @@ class AuthService {
         'tipoUsuario': tipoUsuario,
       }),
     );
+
+    print('Respuesta del servidor: ${response.body}');
 
     if (response.statusCode == 200) {
       return {'success': true};
