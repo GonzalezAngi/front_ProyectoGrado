@@ -12,7 +12,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       // name: 'especialidades',
-      builder: (context, state) => const EspecialidadesListView(),
+      builder: (context, state) => const LoginPage(),
     ),
     // GoRoute(
     //   path: '/',
@@ -20,6 +20,7 @@ final GoRouter appRouter = GoRouter(
     //),
     GoRoute(
       path: '/register',
+      name: 'register',
       builder: (context, state) => const RegisterPage(), // Usa RegisterPage
     ),
     GoRoute(
@@ -47,6 +48,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/especialidades/create',
       builder: (context, state) => const EspecialidadCreateView(),
+    ),
+    GoRoute(
+      path: '/especialidades',
+      builder: (context, state) => const EspecialidadesListView(),
     ),
   ],
 );

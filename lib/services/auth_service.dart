@@ -11,49 +11,85 @@ class AuthService {
 
   //! login se encarga de autenticar al usuario
   Future<Map<String, dynamic>> login(
-    String tipoIdentificacion,
-    String identificacion,
     String tipoUsuario,
     String contrasena,
+    String identificacion,
   ) async {
     final response = await http.post(
-      Uri.parse('${baseUrl}usuario'),
-      //* especifica el tipo de contenido que se va a enviar
-      //* el servidor espera recibir un JSON
+      Uri.parse('${baseUrl}login'),
       headers: {'Content-Type': 'application/json'},
-      //* convierte el objeto a JSON
-      //* se envia el tipo de identificacion, identificicación, tipo de usuario y la contraseña al servidor
-      //* el servidor devuelve un token y el usuario
       body: jsonEncode({
-        'tipoIdentificacion': tipoIdentificacion,
-        'identificacion': identificacion,
         'tipoUsuario': tipoUsuario,
         'contrasena': contrasena,
+        'identificacion': identificacion,
       }),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      try {
-        //! shared_preferences se encarga de guardar el token y el usuario
-        //! en el dispositivo del usuario
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']);
-        await prefs.setString('user', jsonEncode(data['user']));
-      } catch (e) {
-        debugPrint('Error al guardar token en SharedPreferences: $e');
+      // Verifica si el cuerpo de la respuesta no está vacío
+      if (response.body.isNotEmpty) {
+        final data = jsonDecode(response.body);
+
+        try {
+          final prefs = await SharedPreferences.getInstance();
+
+          // Manejo del token
+          if (data['token'] != null) {
+            await prefs.setString('token', data['token']);
+          } else {
+            debugPrint(
+              'El token es nulo. No se puede guardar en SharedPreferences.',
+            );
+          }
+
+          // Manejo del usuario
+          if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+            await prefs.setString('user', jsonEncode(data['user']));
+            return {'success': true, 'user': User.fromJson(data['user'])};
+          } else {
+            debugPrint('El usuario es nulo o no es un objeto válido.');
+            return {
+              'success': true,
+              'message':
+                  'Inicio de sesión exitoso, pero no se recibió información del usuario.',
+            };
+          }
+        } catch (e) {
+          debugPrint('Error al guardar datos en SharedPreferences: $e');
+          return {
+            'success': false,
+            'message': 'Error interno al procesar los datos.',
+          };
+        }
+      } else {
+        // Si el cuerpo de la respuesta está vacío
+        return {
+          'success': false,
+          'message': 'Usuario o contraseña incorrectos',
+        };
       }
-
-      return {'success': true, 'user': User.fromJson(data['user'])};
     } else {
-      //* si el servidor devuelve un error, se convierte el objeto a JSON
-      //* y se devuelve el mensaje de error
-      final data = jsonDecode(response.body);
-      return {'success': false, 'message': data['message'] ?? 'Error en login'};
+      // Manejo de errores
+      if (response.body.isNotEmpty) {
+        try {
+          final data = jsonDecode(response.body);
+          return {
+            'success': false,
+            'message': data['message'] ?? 'Usuario o contraseña incorrectos',
+          };
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'Error desconocido. Por favor, inténtelo de nuevo.',
+          };
+        }
+      } else {
+        // Si el cuerpo de la respuesta está vacío
+        return {'success': false, 'message': 'Usuario incorrecto'};
+      }
     }
-  }
+  } //! register se encarga de registrar al usuario
 
-  //! register se encarga de registrar al usuario
   //* se le pasa el nombre, telefono, email, identificación, genero, estado, tipo identificacion, contraseña y tipo usuario al servidor
   Future<Map<String, dynamic>> register(
     String nombre,

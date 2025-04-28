@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_proyectogrado/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
 
 class LoginPage extends StatefulWidget {
@@ -10,9 +11,42 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  String? _selectedDocumentType;
   String? _selectedUserType;
+  final _identificationCtrl = TextEditingController();
+  final _contrasenaCtrl = TextEditingController();
 
+  bool isLoading = false;
+  String? errorMessage;
+  void login() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() {
+    isLoading = true;
+    errorMessage = null;
+  });
+
+  final result = await AuthService().login(
+    _selectedUserType.toString(),
+    _contrasenaCtrl.text.trim(),
+    _identificationCtrl.text.trim(),
+  );
+
+  setState(() => isLoading = false);
+
+  if (result['success']) {
+    if (!mounted) return;
+    context.go('/especialidades'); 
+  } else {
+    setState(() {
+      errorMessage = result['message'] ?? 'Error al iniciar sesión';
+    });
+
+    // Muestra el mensaje de error en un SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage!)),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,47 +79,7 @@ class _LoginPageState extends State<LoginPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       '¡Por favor complete todos los campos!',
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 300, // Ancho máximo ajustado
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          labelText: 'Tipo de documento*',
-                          border: OutlineInputBorder(),
-                        ),
-                        value: _selectedDocumentType,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'Cedula de ciudadania',
-                            child: Text('Cédula de ciudadanía'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Pasaporte',
-                            child: Text('Pasaporte'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Cedula de extranjeria',
-                            child: Text('Cédula de extranjería'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedDocumentType = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor seleccione el tipo de documento';
-                          }
-                          return null;
-                        },
-                      ),
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ),
                   SizedBox(
@@ -93,6 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextFormField(
+                        controller: _identificationCtrl,
                         decoration: const InputDecoration(
                           labelText: 'Número de documento*',
                           border: OutlineInputBorder(),
@@ -150,6 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: TextFormField(
                         obscureText: true,
+                        controller: _contrasenaCtrl,
                         decoration: const InputDecoration(
                           labelText: 'Contraseña*',
                           border: OutlineInputBorder(),
@@ -168,20 +164,18 @@ class _LoginPageState extends State<LoginPage> {
                     width: 300, // Ancho máximo ajustado
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Acción para iniciar sesión (vacío por ahora)
-                        }
-                      },
+                      onPressed: isLoading ? null : login,
+                      child: isLoading
+                          ? const CircularProgressIndicator()
+                          : const Text(
+                              'Iniciar sesión',
+                              style: TextStyle(color: Colors.white),
+                            ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      child: const Text(
-                        'Iniciar sesión',
-                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
@@ -191,7 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () {
-                         context.go('/register');
+                        context.go('/register');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
