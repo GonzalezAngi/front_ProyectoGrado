@@ -60,7 +60,7 @@ class AdminPage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Acción para agregar especialidad
+                      context.go('/especialidades/create');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -80,7 +80,6 @@ class AdminPage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Acción para listar médicos
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -100,7 +99,7 @@ class AdminPage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Acción para listar especialidades
+                      context.go('/especialidades');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

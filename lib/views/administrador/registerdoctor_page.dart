@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterDoctorPage extends StatefulWidget {
   const RegisterDoctorPage({super.key});
@@ -9,11 +12,74 @@ class RegisterDoctorPage extends StatefulWidget {
 
 class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
   final _formKey = GlobalKey<FormState>();
+  final _identificationCtrl = TextEditingController();
+  final _nombreController = TextEditingController();
+  final _telefonoController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _numeroDocumentoController = TextEditingController();
+  final _tarjetaProfesionalController = TextEditingController();
+
   String? _selectedDocumentType;
   String? _selectedGender;
   String? _selectedUserStatus;
   String? _selectedSpecialty;
   String? _selectedDoctorStatus;
+
+  //! Método para buscar un médico por identificación
+  Future<void> _buscarPorIdentificacion() async {
+    final identificacion = _identificationCtrl.text.trim();
+
+    if (identificacion.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor ingrese una identificación')),
+      );
+      return;
+    }
+
+    try {
+      // Realiza la llamada a la API
+      final response = await http.get(
+        Uri.parse('http://18.224.34.150:8080/usuario'),
+      );
+
+      if (response.statusCode == 200) {
+        // Decodifica la respuesta JSON
+        final datos = jsonDecode(response.body);
+
+        // Precarga los datos en los campos del formulario
+        setState(() {
+          _nombreController.text = datos['nombre'] ?? '';
+          _telefonoController.text = datos['telefono'] ?? '';
+          _emailController.text = datos['email'] ?? '';
+          _numeroDocumentoController.text = datos['numeroDocumento'] ?? '';
+          _tarjetaProfesionalController.text = datos['tarjetaProfesional'] ?? '';
+          _selectedDocumentType = datos['tipoDocumento'];
+          _selectedGender = datos['genero'];
+          _selectedUserStatus = datos['estadoUsuario'];
+          _selectedSpecialty = datos['especialidad'];
+          _selectedDoctorStatus = datos['estadoMedico'];
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Datos cargados correctamente')),
+        );
+      } else if (response.statusCode == 404) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se encontró un médico con esa identificación')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al buscar los datos')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,13 +113,31 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      'Registrar Médico',
-                      style: const TextStyle(
-                        fontSize: 38,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: 300,
+                    child: TextFormField(
+                      controller: _identificationCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Buscar por Identificación',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 300,
+                    child: ElevatedButton(
+                      onPressed: _buscarPorIdentificacion,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Buscar',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),

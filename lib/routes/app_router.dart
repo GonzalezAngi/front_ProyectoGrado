@@ -5,19 +5,16 @@ import 'package:front_proyectogrado/views/auth/register_page.dart';
 import 'package:front_proyectogrado/views/especialidad/especialidad_create_view.dart';
 import 'package:front_proyectogrado/views/especialidad/especialidad_edit_view.dart';
 import 'package:front_proyectogrado/views/especialidad/especialidad_list_view.dart';
+import 'package:front_proyectogrado/views/paciente/home_view.dart';
 import 'package:go_router/go_router.dart';
 
 final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      name: 'login',
-      builder: (context, state) => const LoginPage(),
+      name: 'admin',
+      builder: (context, state) => const AdminPage(), // Usa HomePage
     ),
-    // GoRoute(
-    //   path: '/',
-    //   builder: (context, state) => const LoginPage(), // Usa LogingPage
-    //),
     GoRoute(
       path: '/register',
       name: 'register',
@@ -53,5 +50,9 @@ final GoRouter appRouter = GoRouter(
       path: '/especialidades',
       builder: (context, state) => const EspecialidadesListView(),
     ),
+    GoRoute(
+      path: '/admin',
+      builder: (context, state) => const AdminPage(),
+    ), // Usa AdminPage
   ],
 );

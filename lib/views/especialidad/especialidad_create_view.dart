@@ -57,7 +57,15 @@ class _EspecialidadCreateViewState extends State<EspecialidadCreateView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nuevo Especialidad')),
+      appBar: AppBar(
+        title: const Text('Nuevo Especialidad'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.go('/admin'); // Regresa a la pantalla anterior
+          },
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(

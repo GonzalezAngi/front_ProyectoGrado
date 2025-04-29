@@ -77,9 +77,16 @@ class EspecialidadesListViewState extends State<EspecialidadesListView> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseView(
-      title: 'Especialidad',
-      //* Se usa el FutureBuilder para construir la lista de establecimientos
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Especialidades'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back), // Flecha para retroceder
+          onPressed: () {
+            context.go('/admin'); // Regresa a la pantalla anterior
+          },
+        ),
+      ),
       body: FutureBuilder<List<Especialidad>>(
         future: _future,
         builder: (context, snapshot) {
