@@ -12,8 +12,8 @@ final GoRouter appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      name: 'admin',
-      builder: (context, state) => const AdminPage(), // Usa HomePage
+      name: 'login',
+      builder: (context, state) => const LoginPage(), // Usa HomePage
     ),
     GoRoute(
       path: '/register',

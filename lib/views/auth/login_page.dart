@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:front_proyectogrado/services/auth_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crypto/crypto.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,35 +21,40 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
   String? errorMessage;
   void login() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() {
-    isLoading = true;
-    errorMessage = null;
-  });
-
-  final result = await AuthService().login(
-    _selectedUserType.toString(),
-    _contrasenaCtrl.text.trim(),
-    _identificationCtrl.text.trim(),
-  );
-
-  setState(() => isLoading = false);
-
-  if (result['success']) {
-    if (!mounted) return;
-    context.go('/especialidades'); 
-  } else {
     setState(() {
-      errorMessage = result['message'] ?? 'Error al iniciar sesión';
+      isLoading = true;
+      errorMessage = null;
     });
-
-    // Muestra el mensaje de error en un SnackBar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(errorMessage!)),
+    // Encripta la contraseña usando SHA-256
+    // Genera el hash
+    final bytes = utf8.encode(_contrasenaCtrl.text.trim());
+    final hashedPassword = sha256.convert(bytes).toString();
+    
+    final result = await AuthService().login(
+      _selectedUserType.toString(),
+      hashedPassword,
+      _identificationCtrl.text.trim(),
     );
+
+    setState(() => isLoading = false);
+
+    if (result['success']) {
+      if (!mounted) return;
+      context.go('/especialidades');
+    } else {
+      setState(() {
+        errorMessage = result['message'] ?? 'Error al iniciar sesión';
+      });
+
+      // Muestra el mensaje de error en un SnackBar
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(errorMessage!)));
+    }
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -165,12 +173,13 @@ class _LoginPageState extends State<LoginPage> {
                     height: 50,
                     child: ElevatedButton(
                       onPressed: isLoading ? null : login,
-                      child: isLoading
-                          ? const CircularProgressIndicator()
-                          : const Text(
-                              'Iniciar sesión',
-                              style: TextStyle(color: Colors.white),
-                            ),
+                      child:
+                          isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                'Iniciar sesión',
+                                style: TextStyle(color: Colors.white),
+                              ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         shape: RoundedRectangleBorder(
