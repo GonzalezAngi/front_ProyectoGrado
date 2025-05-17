@@ -25,63 +25,80 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
   String? _selectedSpecialty;
   String? _selectedDoctorStatus;
 
-  //! Método para buscar un médico por identificación
-  Future<void> _buscarPorIdentificacion() async {
-  final identificacion = _identificationCtrl.text.trim();
-
-  if (identificacion.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Por favor ingrese una identificación')),
-    );
-    return;
-  }
-  try {
-    // Realiza la llamada a la API
+  Future<List> _Especialidades() async {
     final response = await http.get(
-      Uri.parse('http://18.224.34.150:8080/usuario'),
+      Uri.parse('http://18.224.34.150:8080/especialidad'),
     );
-    print(response.body);
-
     if (response.statusCode == 200) {
       // Decodifica la respuesta JSON
       final datos = jsonDecode(response.body);
-
-      // Busca el usuario por identificación
-      final usuario = (datos as List).firstWhere(
-        (u) => u['identificacion'] == identificacion,
-        orElse: () => null,
-      );
-
-      // Precarga los datos en los campos del formulario
-      if (usuario != null) {
-        setState(() {
-          _nombreController.text = usuario['nombre'] ?? '';
-          _telefonoController.text = usuario['telefono'] ?? '';
-          _emailController.text = usuario['email'] ?? '';
-          _numeroDocumentoController.text = usuario['identificacion'] ?? '';
-          _tarjetaProfesionalController.text = usuario['tarjetaProfesional'] ?? '';
-          _selectedDocumentType = usuario['tipoIdentificacion'];
-          _selectedGender = usuario['genero'];
-          _selectedUserStatus = usuario['estado'];
-          _selectedSpecialty = usuario['especialidad'];
-          _selectedDoctorStatus = usuario['estadoMedico'];
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Datos cargados correctamente')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró un usuario con esa identificación')),
-        );
-      }
+      print(datos);
+      return datos;
+    } else {
+      throw Exception('Error al cargar especialidades');
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
   }
-}
+
+  //! Método para buscar un médico por identificación
+  Future<void> _buscarPorIdentificacion() async {
+    final identificacion = _identificationCtrl.text.trim();
+
+    if (identificacion.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor ingrese una identificación')),
+      );
+      return;
+    }
+    try {
+      // Realiza la llamada a la API
+      final response = await http.get(
+        Uri.parse('http://18.224.34.150:8080/usuario'),
+      );
+      print(response.body);
+
+      if (response.statusCode == 200) {
+        // Decodifica la respuesta JSON
+        final datos = jsonDecode(response.body);
+
+        // Busca el usuario por identificación
+        final usuario = (datos as List).firstWhere(
+          (u) => u['identificacion'] == identificacion,
+          orElse: () => null,
+        );
+
+        // Precarga los datos en los campos del formulario
+        if (usuario != null) {
+          setState(() {
+            _nombreController.text = usuario['nombre'] ?? '';
+            _telefonoController.text = usuario['telefono'] ?? '';
+            _emailController.text = usuario['email'] ?? '';
+            _numeroDocumentoController.text = usuario['identificacion'] ?? '';
+            _tarjetaProfesionalController.text =
+                usuario['tarjetaProfesional'] ?? '';
+            _selectedDocumentType = usuario['tipoIdentificacion'];
+            _selectedGender = usuario['genero'];
+            _selectedUserStatus = usuario['estado'];
+            _selectedSpecialty = usuario['especialidad'];
+            _selectedDoctorStatus = usuario['estadoMedico'];
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Datos cargados correctamente')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se encontró un usuario con esa identificación'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -321,36 +338,46 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                   const SizedBox(height: 16),
                   SizedBox(
                     width: 300,
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Especialidad*',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: _selectedSpecialty,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Cardiología',
-                          child: Text('Cardiología'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Pediatría',
-                          child: Text('Pediatría'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Dermatología',
-                          child: Text('Dermatología'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedSpecialty = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor seleccione la especialidad';
+                    child: FutureBuilder<List>(
+                      future: _Especialidades(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else if (!snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return const Text('No hay especialidades');
+                        } else {
+                          return DropdownButtonFormField<String>(
+                            decoration: const InputDecoration(
+                              labelText: 'Especialidad*',
+                              border: OutlineInputBorder(),
+                            ),
+                            value: _selectedSpecialty,
+                            items:
+                                snapshot.data!.map<DropdownMenuItem<String>>((
+                                  especialidad,
+                                ) {
+                                  return DropdownMenuItem<String>(
+                                    value: especialidad['nombre'],
+                                    child: Text(especialidad['nombre']),
+                                  );
+                                }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedSpecialty = value;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Por favor seleccione la especialidad';
+                              }
+                              return null;
+                            },
+                          );
                         }
-                        return null;
                       },
                     ),
                   ),
@@ -435,45 +462,45 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
   }
 
   Future<void> _guardarRegistro() async {
-  // Construye el objeto con los datos del formulario
-  final datos = {
-    'nombre': _nombreController.text.trim(),
-    'telefono': _telefonoController.text.trim(),
-    'email': _emailController.text.trim(),
-    'tipoIdentificacion': _selectedDocumentType,
-    'identificacion': _numeroDocumentoController.text.trim(),
-    'genero': _selectedGender,
-    'estado': _selectedUserStatus,
-    'especialidad': _selectedSpecialty,
-    'estadoMedico': _selectedDoctorStatus,
-    'tarjetaProfesional': _tarjetaProfesionalController.text.trim(),
-  };
+    // Construye el objeto con los datos del formulario
+    final datos = {
+      'nombre': _nombreController.text.trim(),
+      'telefono': _telefonoController.text.trim(),
+      'email': _emailController.text.trim(),
+      'tipoIdentificacion': _selectedDocumentType,
+      'identificacion': _numeroDocumentoController.text.trim(),
+      'genero': _selectedGender,
+      'estado': _selectedUserStatus,
+      'especialidad': _selectedSpecialty,
+      'estadoMedico': _selectedDoctorStatus,
+      'tarjetaProfesional': _tarjetaProfesionalController.text.trim(),
+    };
 
-  try {
-    final response = await http.post(
-      Uri.parse('http://18.224.34.150:8080/medico'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(datos),
-    );
-
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registro guardado exitosamente')),
+    try {
+      final response = await http.post(
+        Uri.parse('http://18.224.34.150:8080/medico'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(datos),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar: ${response.body}')),
-      );
+
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registro guardado exitosamente')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
-  } catch (e) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Error: $e')));
   }
-}
 
   @override
   void dispose() {
