@@ -27,8 +27,8 @@ final GoRouter appRouter = GoRouter(
               const RegisterDoctorPage(), // Usa RegisterDoctorPage
     ),
     GoRoute(
-      path: '/Administrador',
-      name: 'Administrador',
+      path: '/AdminPage',
+      name: 'AdminPage',
       builder: (context, state) => const AdminPage(), // Usa AdminPage
     ),
 
@@ -50,9 +50,11 @@ final GoRouter appRouter = GoRouter(
       path: '/especialidades',
       builder: (context, state) => const EspecialidadesListView(),
     ),
+    
     GoRoute(
-      path: '/admin',
-      builder: (context, state) => const AdminPage(),
+      path: '/home_view',
+      name: 'home_view',
+      builder: (context, state) => const HomePage(),
     ), // Usa AdminPage
   ],
 );

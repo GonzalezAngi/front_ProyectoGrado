@@ -15,7 +15,7 @@ class AdminPage extends StatelessWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            context.go('/');
           },
         ),
         title: const Text(

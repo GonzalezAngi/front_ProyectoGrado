@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     // Genera el hash
     final bytes = utf8.encode(_contrasenaCtrl.text.trim());
     final hashedPassword = sha256.convert(bytes).toString();
-    
+
     final result = await AuthService().login(
       _selectedUserType.toString(),
       hashedPassword,
@@ -42,7 +42,13 @@ class _LoginPageState extends State<LoginPage> {
 
     if (result['success']) {
       if (!mounted) return;
-      context.go('/especialidades');
+      if (_selectedUserType == 'Administrador') {
+        context.go('/AdminPage');
+      } else if (_selectedUserType == 'Paciente') {
+        context.go('/home_view');
+      } else {
+        context.go('/especialidades');
+      }
     } else {
       setState(() {
         errorMessage = result['message'] ?? 'Error al iniciar sesión';
