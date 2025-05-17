@@ -27,59 +27,61 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
 
   //! Método para buscar un médico por identificación
   Future<void> _buscarPorIdentificacion() async {
-    final identificacion = _identificationCtrl.text.trim();
+  final identificacion = _identificationCtrl.text.trim();
 
-    if (identificacion.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor ingrese una identificación')),
+  if (identificacion.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Por favor ingrese una identificación')),
+    );
+    return;
+  }
+  try {
+    // Realiza la llamada a la API
+    final response = await http.get(
+      Uri.parse('http://18.224.34.150:8080/usuario'),
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      // Decodifica la respuesta JSON
+      final datos = jsonDecode(response.body);
+
+      // Busca el usuario por identificación
+      final usuario = (datos as List).firstWhere(
+        (u) => u['identificacion'] == identificacion,
+        orElse: () => null,
       );
-      return;
-    }
 
-    try {
-      // Realiza la llamada a la API
-      final response = await http.get(
-        Uri.parse('http://18.224.34.150:8080/usuario'),
-      );
-
-      if (response.statusCode == 200) {
-        // Decodifica la respuesta JSON
-        final datos = jsonDecode(response.body);
-
-        // Precarga los datos en los campos del formulario
+      // Precarga los datos en los campos del formulario
+      if (usuario != null) {
         setState(() {
-          _nombreController.text = datos['nombre'] ?? '';
-          _telefonoController.text = datos['telefono'] ?? '';
-          _emailController.text = datos['email'] ?? '';
-          _numeroDocumentoController.text = datos['numeroDocumento'] ?? '';
-          _tarjetaProfesionalController.text = datos['tarjetaProfesional'] ?? '';
-          _selectedDocumentType = datos['tipoDocumento'];
-          _selectedGender = datos['genero'];
-          _selectedUserStatus = datos['estadoUsuario'];
-          _selectedSpecialty = datos['especialidad'];
-          _selectedDoctorStatus = datos['estadoMedico'];
+          _nombreController.text = usuario['nombre'] ?? '';
+          _telefonoController.text = usuario['telefono'] ?? '';
+          _emailController.text = usuario['email'] ?? '';
+          _numeroDocumentoController.text = usuario['identificacion'] ?? '';
+          _tarjetaProfesionalController.text = usuario['tarjetaProfesional'] ?? '';
+          _selectedDocumentType = usuario['tipoIdentificacion'];
+          _selectedGender = usuario['genero'];
+          _selectedUserStatus = usuario['estado'];
+          _selectedSpecialty = usuario['especialidad'];
+          _selectedDoctorStatus = usuario['estadoMedico'];
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Datos cargados correctamente')),
         );
-      } else if (response.statusCode == 404) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No se encontró un médico con esa identificación')),
-        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error al buscar los datos')),
+          const SnackBar(content: Text('No se encontró un usuario con esa identificación')),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
   }
-
-
+}
 
   @override
   Widget build(BuildContext context) {
@@ -145,14 +147,13 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Text(
                       '¡Por favor complete todos los campos!',
-                      style: const TextStyle(
-                        fontSize: 16,
-                      ),
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ),
                   SizedBox(
                     width: 300,
                     child: TextFormField(
+                      controller: _nombreController,
                       decoration: const InputDecoration(
                         labelText: 'Nombre y apellido*',
                         border: OutlineInputBorder(),
@@ -169,6 +170,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                   SizedBox(
                     width: 300,
                     child: TextFormField(
+                      controller: _telefonoController,
                       decoration: const InputDecoration(
                         labelText: 'Teléfono*',
                         border: OutlineInputBorder(),
@@ -185,6 +187,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                   SizedBox(
                     width: 300,
                     child: TextFormField(
+                      controller: _emailController,
                       decoration: const InputDecoration(
                         labelText: 'Email*',
                         border: OutlineInputBorder(),
@@ -237,6 +240,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                   SizedBox(
                     width: 300,
                     child: TextFormField(
+                      controller: _numeroDocumentoController,
                       decoration: const InputDecoration(
                         labelText: 'Número de documento*',
                         border: OutlineInputBorder(),
@@ -267,10 +271,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                           value: 'Femenino',
                           child: Text('Femenino'),
                         ),
-                        DropdownMenuItem(
-                          value: 'Otro',
-                          child: Text('Otro'),
-                        ),
+                        DropdownMenuItem(value: 'Otro', child: Text('Otro')),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -389,6 +390,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                   SizedBox(
                     width: 300,
                     child: TextFormField(
+                      controller: _tarjetaProfesionalController,
                       decoration: const InputDecoration(
                         labelText: 'Número de tarjeta profesional*',
                         border: OutlineInputBorder(),
@@ -408,7 +410,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Acción para guardar el registro
+                          _guardarRegistro();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -430,5 +432,57 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _guardarRegistro() async {
+  // Construye el objeto con los datos del formulario
+  final datos = {
+    'nombre': _nombreController.text.trim(),
+    'telefono': _telefonoController.text.trim(),
+    'email': _emailController.text.trim(),
+    'tipoIdentificacion': _selectedDocumentType,
+    'identificacion': _numeroDocumentoController.text.trim(),
+    'genero': _selectedGender,
+    'estado': _selectedUserStatus,
+    'especialidad': _selectedSpecialty,
+    'estadoMedico': _selectedDoctorStatus,
+    'tarjetaProfesional': _tarjetaProfesionalController.text.trim(),
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse('http://18.224.34.150:8080/medico'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(datos),
+    );
+
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registro guardado exitosamente')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: ${response.body}')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+  }
+}
+
+  @override
+  void dispose() {
+    _identificationCtrl.dispose();
+    _nombreController.dispose();
+    _telefonoController.dispose();
+    _emailController.dispose();
+    _numeroDocumentoController.dispose();
+    _tarjetaProfesionalController.dispose();
+    super.dispose();
   }
 }
