@@ -1,6 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:front_proyectogrado/models/especialidad.dart';
+import 'package:front_proyectogrado/models/medico.dart';
+import 'package:front_proyectogrado/models/user.dart';
+import 'package:front_proyectogrado/services/especialidad_serives.dart';
+import 'package:front_proyectogrado/services/medico_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
 class RegisterDoctorPage extends StatefulWidget {
@@ -11,6 +17,7 @@ class RegisterDoctorPage extends StatefulWidget {
 }
 
 class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
+  final _service = MedicoService();
   final _formKey = GlobalKey<FormState>();
   final _identificationCtrl = TextEditingController();
   final _nombreController = TextEditingController();
@@ -18,11 +25,12 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
   final _emailController = TextEditingController();
   final _numeroDocumentoController = TextEditingController();
   final _tarjetaProfesionalController = TextEditingController();
+  final _idController = TextEditingController();
 
   String? _selectedDocumentType;
   String? _selectedGender;
   String? _selectedUserStatus;
-  String? _selectedSpecialty;
+  int? _selectedSpecialtyId;
   String? _selectedDoctorStatus;
 
   Future<List> _Especialidades() async {
@@ -36,6 +44,53 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
       return datos;
     } else {
       throw Exception('Error al cargar especialidades');
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_formKey.currentState!.validate()) {
+      final user = User(
+        id: int.parse(_idController.text),
+        nombre: '',
+        telefono: '',
+        email: '',
+        identificacion: '',
+        genero: '',
+        estado: '',
+        tipoIdentificacion: '',
+        contrasena: '', // Contraseña por defecto
+        tipoUsuario: 'Medico',
+      );
+      final especi = Especialidad(
+        id: _selectedSpecialtyId,
+        nombre: "",
+        estado: "",
+      );
+
+      final est = Medico(
+        usuario: user,
+        especialidad: especi,
+        estado: _selectedUserStatus ?? '',
+        tarjetaProfe: _tarjetaProfesionalController.text.trim(),
+        id: 0,
+      );
+      print('aquiiiiiiiiiii');
+      print(est.toString());
+      print(est.toJson());
+      final ok = await _service.createMedico(est);
+
+      if (!mounted) return;
+
+      if (ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('medico creado correctamente')),
+        );
+        context.pop(true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error al crear especialidad')),
+        );
+      }
     }
   }
 
@@ -54,7 +109,6 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
       final response = await http.get(
         Uri.parse('http://18.224.34.150:8080/usuario'),
       );
-      print(response.body);
 
       if (response.statusCode == 200) {
         // Decodifica la respuesta JSON
@@ -69,6 +123,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
         // Precarga los datos en los campos del formulario
         if (usuario != null) {
           setState(() {
+            _idController.text = usuario['id']?.toString() ?? '';
             _nombreController.text = usuario['nombre'] ?? '';
             _telefonoController.text = usuario['telefono'] ?? '';
             _emailController.text = usuario['email'] ?? '';
@@ -78,7 +133,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
             _selectedDocumentType = usuario['tipoIdentificacion'];
             _selectedGender = usuario['genero'];
             _selectedUserStatus = usuario['estado'];
-            _selectedSpecialty = usuario['especialidad'];
+            _selectedSpecialtyId = usuario['especialidad'];
             _selectedDoctorStatus = usuario['estadoMedico'];
           });
 
@@ -350,28 +405,28 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                             snapshot.data!.isEmpty) {
                           return const Text('No hay especialidades');
                         } else {
-                          return DropdownButtonFormField<String>(
+                          return DropdownButtonFormField<int>(
                             decoration: const InputDecoration(
                               labelText: 'Especialidad*',
                               border: OutlineInputBorder(),
                             ),
-                            value: _selectedSpecialty,
+                            value: _selectedSpecialtyId, // Cambia esto a un int
                             items:
-                                snapshot.data!.map<DropdownMenuItem<String>>((
+                                snapshot.data!.map<DropdownMenuItem<int>>((
                                   especialidad,
                                 ) {
-                                  return DropdownMenuItem<String>(
-                                    value: especialidad['nombre'],
+                                  return DropdownMenuItem<int>(
+                                    value: especialidad['id'],
                                     child: Text(especialidad['nombre']),
                                   );
                                 }).toList(),
                             onChanged: (value) {
                               setState(() {
-                                _selectedSpecialty = value;
+                                _selectedSpecialtyId = value;
                               });
                             },
                             validator: (value) {
-                              if (value == null || value.isEmpty) {
+                              if (value == null) {
                                 return 'Por favor seleccione la especialidad';
                               }
                               return null;
@@ -437,7 +492,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          _guardarRegistro();
+                          _submit();
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -471,7 +526,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
       'identificacion': _numeroDocumentoController.text.trim(),
       'genero': _selectedGender,
       'estado': _selectedUserStatus,
-      'especialidad': _selectedSpecialty,
+      'especialidad': _selectedSpecialtyId,
       'estadoMedico': _selectedDoctorStatus,
       'tarjetaProfesional': _tarjetaProfesionalController.text.trim(),
     };

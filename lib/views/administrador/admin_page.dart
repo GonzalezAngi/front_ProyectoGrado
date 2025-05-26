@@ -80,6 +80,7 @@ class AdminPage extends StatelessWidget {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () {
+                      context.go('/medico/list');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

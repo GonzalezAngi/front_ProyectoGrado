@@ -1,4 +1,5 @@
 import 'package:front_proyectogrado/views/administrador/admin_page.dart';
+import 'package:front_proyectogrado/views/administrador/listadomedicos_page.dart';
 import 'package:front_proyectogrado/views/administrador/registerdoctor_page.dart';
 import 'package:front_proyectogrado/views/auth/login_page.dart';
 import 'package:front_proyectogrado/views/auth/register_page.dart';
@@ -55,6 +56,10 @@ final GoRouter appRouter = GoRouter(
       path: '/home_view',
       name: 'home_view',
       builder: (context, state) => const HomePage(),
-    ), // Usa AdminPage
+    ),
+    GoRoute(
+      path: '/medico/list',
+      builder: (context, state) => const ListadoMedicosPage(),
+    ),
   ],
 );

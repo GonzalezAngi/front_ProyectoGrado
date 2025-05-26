@@ -77,7 +77,7 @@ class MedicoService {
       final body = jsonEncode({
         'especialidad': {'id': est.especialidad.id},
         'usuario': {'id': est.usuario.id},
-        'estado': est.usuario.id,
+        'estado': est.estado,
         'tarjetaProfe': est.tarjetaProfe,
       });
 
