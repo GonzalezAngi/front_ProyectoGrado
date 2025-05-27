@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_proyectogrado/models/medico.dart';
 import 'package:front_proyectogrado/services/medico_service.dart';
+import 'package:go_router/go_router.dart';
 
 class ListadoMedicosPage extends StatefulWidget {
   const ListadoMedicosPage({super.key});
@@ -31,7 +32,26 @@ class _ListadoMedicosPageState extends State<ListadoMedicosPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white,appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: true,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
+          onPressed: () {
+            context.go('/AdminPage');
+          },
+        ),
+        title: const Text(
+          '',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           const SizedBox(height: 16),

@@ -45,11 +45,15 @@ class _EspecialidadCreateViewState extends State<EspecialidadCreateView> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Especialidad creada correctamente')),
         );
-        context.pop(true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al crear especialidad')),
         );
+      }
+      if (Navigator.of(context).canPop()) {
+        context.pop(true);
+      } else {
+        context.go('/AdminPage'); // O navega a donde quieras
       }
     }
   }
@@ -62,7 +66,7 @@ class _EspecialidadCreateViewState extends State<EspecialidadCreateView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            context.go('/admin'); // Regresa a la pantalla anterior
+            context.go('/AdminPage'); // Regresa a la pantalla anterior
           },
         ),
       ),

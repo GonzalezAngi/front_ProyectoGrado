@@ -28,10 +28,10 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
   final _idController = TextEditingController();
 
   String? _selectedDocumentType;
-  String? _selectedGender;
+
   String? _selectedUserStatus;
   int? _selectedSpecialtyId;
-  String? _selectedDoctorStatus;
+  
 
   Future<List> _Especialidades() async {
     final response = await http.get(
@@ -74,9 +74,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
         tarjetaProfe: _tarjetaProfesionalController.text.trim(),
         id: 0,
       );
-      print('aquiiiiiiiiiii');
-      print(est.toString());
-      print(est.toJson());
+
       final ok = await _service.createMedico(est);
 
       if (!mounted) return;
@@ -85,12 +83,17 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('medico creado correctamente')),
         );
-        context.pop(true);
+        
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al crear especialidad')),
         );
       }
+      if (Navigator.of(context).canPop()) {
+          context.pop(true);
+        } else {
+          context.go('/AdminPage'); // O navega a donde quieras
+        }
     }
   }
 
@@ -131,10 +134,10 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
             _tarjetaProfesionalController.text =
                 usuario['tarjetaProfesional'] ?? '';
             _selectedDocumentType = usuario['tipoIdentificacion'];
-            _selectedGender = usuario['genero'];
+            
             _selectedUserStatus = usuario['estado'];
             _selectedSpecialtyId = usuario['especialidad'];
-            _selectedDoctorStatus = usuario['estadoMedico'];
+           
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +169,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            context.go('/AdminPage');
           },
         ),
         title: const Text(
@@ -330,39 +333,6 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                     width: 300,
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        labelText: 'Género*',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: _selectedGender,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Masculino',
-                          child: Text('Masculino'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Femenino',
-                          child: Text('Femenino'),
-                        ),
-                        DropdownMenuItem(value: 'Otro', child: Text('Otro')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedGender = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor seleccione el género';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: 300,
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
                         labelText: 'Estado Usuario*',
                         border: OutlineInputBorder(),
                       ),
@@ -436,38 +406,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
                       },
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: 300,
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Estado Médico*',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: _selectedDoctorStatus,
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Activo',
-                          child: Text('Activo'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'Inactivo',
-                          child: Text('Inactivo'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDoctorStatus = value;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor seleccione el estado del médico';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
+                  
                   const SizedBox(height: 16),
                   SizedBox(
                     width: 300,
@@ -515,48 +454,7 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
       ),
     );
   }
-
-  Future<void> _guardarRegistro() async {
-    // Construye el objeto con los datos del formulario
-    final datos = {
-      'nombre': _nombreController.text.trim(),
-      'telefono': _telefonoController.text.trim(),
-      'email': _emailController.text.trim(),
-      'tipoIdentificacion': _selectedDocumentType,
-      'identificacion': _numeroDocumentoController.text.trim(),
-      'genero': _selectedGender,
-      'estado': _selectedUserStatus,
-      'especialidad': _selectedSpecialtyId,
-      'estadoMedico': _selectedDoctorStatus,
-      'tarjetaProfesional': _tarjetaProfesionalController.text.trim(),
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse('http://18.224.34.150:8080/medico'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(datos),
-      );
-
-      print('Status: ${response.statusCode}');
-      print('Body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registro guardado exitosamente')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: ${response.body}')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
+  /*
   @override
   void dispose() {
     _identificationCtrl.dispose();
@@ -566,5 +464,5 @@ class _RegisterDoctorPageState extends State<RegisterDoctorPage> {
     _numeroDocumentoController.dispose();
     _tarjetaProfesionalController.dispose();
     super.dispose();
-  }
+  }*/
 }

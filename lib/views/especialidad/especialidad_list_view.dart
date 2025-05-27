@@ -25,17 +25,17 @@ class EspecialidadesListViewState extends State<EspecialidadesListView> {
 
   //! método para navegar a la vista de editar establecimiento
   //! Recibe el id del establecimiento a editar
- Future<void> _goToEdit(int id) async {
-  final result = await context.push('/especialidades/edit/$id');
+  Future<void> _goToEdit(int id) async {
+    final result = await context.push('/especialidades/edit/$id');
 
-  //! Si el resultado es true, significa que se actualizó algo
-  //! y se recarga la lista de especialidades
-  if (result == true) {
-    setState(() {
-      _future = _service.getEspecialidades(); // Recarga toda la lista
-    });
+    //! Si el resultado es true, significa que se actualizó algo
+    //! y se recarga la lista de especialidades
+    if (result == true) {
+      setState(() {
+        _future = _service.getEspecialidades(); // Recarga toda la lista
+      });
+    }
   }
-}
 
   //! método para navegar a la vista de crear nuevo establecimiento
   Future<void> _goToCreate() async {
@@ -83,7 +83,7 @@ class EspecialidadesListViewState extends State<EspecialidadesListView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back), // Flecha para retroceder
           onPressed: () {
-            context.go('/admin'); // Regresa a la pantalla anterior
+            context.go('/AdminPage'); // Regresa a la pantalla anterior
           },
         ),
       ),
